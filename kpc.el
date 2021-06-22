@@ -17,11 +17,9 @@
 
 ;;; Code:
 
-(message "Hello World!")
-
 (require 'dash)
 
-(defun read-@-exp-cmd (at-exp pos)
+(defun kpc-read-@-exp-cmd (at-exp pos)
   "Read the <cmd> of AT-EXP at POS.
 
 Note that this reads an sexp as defined by Emacs Lisp.
@@ -32,7 +30,7 @@ Return a cons: (sexp . new-pos)"
       (throw 'ret nil))
     (read-from-string at-exp pos)))
 
-(defun read-@-exp-datums (at-exp pos)
+(defun kpc-read-@-exp-datums (at-exp pos)
   "Read the <datums> of AT-EXP at POS.
 
 Each datum is either an sexp or an @-exp.
@@ -50,7 +48,7 @@ Return a cons: ((sexp ...) . new-pos)"
                   (push sexp sexps))
              finally return (cons (nreverse sexps) pos))))
 
-(defun read-@-exp-bodies (at-exp pos)
+(defun kpc-read-@-exp-bodies (at-exp pos)
   "Read the <bodies> of AT-EXP at POS.
 
 <bodies> is like free text, but @-forms are still expanded.
@@ -101,7 +99,7 @@ Return a cons: ((body ...) . new-pos)"
            (cl-incf pos))))
       (nreverse sexps))))
 
-(defun read-@-exp (at-exp)
+(defun kpc-read-@-exp (at-exp)
   "Read AT-EXP into an sexp.
 
 at-expression: https://docs.racket-lang.org/scribble/reader.html"
@@ -111,27 +109,17 @@ at-expression: https://docs.racket-lang.org/scribble/reader.html"
     (unless (= (aref at-exp pos) ?@)
       (error "Not an @-exp"))
     (cl-incf pos)
-    (-when-let* ((ret (read-@-exp-cmd at-exp pos)))
+    (-when-let* ((ret (kpc-read-@-exp-cmd at-exp pos)))
       (-setq (cmd . pos) ret))
-    (-when-let* ((ret (read-@-exp-datums at-exp pos)))
+    (-when-let* ((ret (kpc-read-@-exp-datums at-exp pos)))
       (-setq (datums . pos) ret))
-    (-when-let* ((ret (read-@-exp-bodies at-exp pos)))
+    (-when-let* ((ret (kpc-read-@-exp-bodies at-exp pos)))
       (-setq (bodies . pos) ret))
     (cond
      ((not (or datums bodies))
       cmd)
      (t
       `(,cmd ,@datums ,@bodies)))))
-
-(expect
- (read-@-exp-datums "@abc[123 \"abc\"]" 4)
- :to-equal
- '((123 "abc") . 17))
-
-(read-@-exp "@a[123 456 \"abc\" [vector v]]")
-(read-@-exp "@a[]")
-(read-@-exp "@a")
-(read-@-exp-cmd "@a[123 456 \"abc\" [vector v]]" 1)
 
 (provide 'kpc)
 
