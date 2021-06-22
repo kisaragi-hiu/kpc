@@ -19,6 +19,18 @@
 
 (require 'dash)
 
+(defvar kpc-debug nil
+  "Should `kpc--message' actually show anything?
+
+Should be set before loading this file.")
+
+(defmacro kpc--message (format-string &rest args)
+  "Like `message', but with a prefix and only when `kpc-debug' is non-nil.
+
+FORMAT-STRING: the format string to pass to `message'.
+ARGS: format args used by `message'."
+  (when kpc-debug
+    `(message ,(concat "(kpc): " format-string) ,@args)))
 
 (defconst kpc-given-but-empty (make-symbol "kpc-given-but-empty")
   "Unique symbol that signals a section is given but empty.")
@@ -132,10 +144,13 @@ at-expression: https://docs.racket-lang.org/scribble/reader.html"
     (cl-incf pos)
     (-when-let* ((ret (kpc-read-@-exp-cmd at-exp pos)))
       (-setq (cmd . pos) ret))
+    (kpc--message "after cmd: %s" pos)
     (-when-let* ((ret (kpc-read-@-exp-datums at-exp pos)))
       (-setq (datums . pos) ret))
+    (kpc--message "after datums: %s" pos)
     (-when-let* ((ret (kpc-read-@-exp-bodies at-exp pos)))
       (-setq (bodies . pos) ret))
+    (kpc--message "after bodies: %s" pos)
     (cond
      ((and (eq datums kpc-given-but-empty)
            (not bodies))
