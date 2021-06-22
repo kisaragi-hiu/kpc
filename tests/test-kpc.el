@@ -7,6 +7,14 @@
 
 (require 'kpc)
 
+(describe "helpers"
+  (let ((str "@a{this is not a symbol}"))
+    (it "sanitizes curly braces"
+      (expect (kpc--sanitize-curly-brace str)
+              :to-equal "@a this is not a symbol}"))
+    (it "sanitizes curly braces without mutating the argument"
+      (expect str :to-equal "@a{this is not a symbol}"))))
+
 (describe "datums"
   (it "passes"
     (expect (kpc-read-@-exp-datums "@abc[123 \"abc\"]" 4)

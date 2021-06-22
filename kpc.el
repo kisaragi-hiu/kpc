@@ -18,6 +18,7 @@
 ;;; Code:
 
 (require 'dash)
+(require 'cl-lib)
 
 (eval-and-compile
   (defvar kpc-debug nil
@@ -36,10 +37,54 @@ ARGS: format args used by `message'."
 (defconst kpc-given-but-empty (make-symbol "kpc-given-but-empty")
   "Unique symbol that signals a section is given but empty.")
 
+(defun kpc--sanitize-curly-brace (str)
+  "Remove the first curly brace in STR."
+  ;; The string-match way:
+  ;;
+  ;;   (save-match-data
+  ;;     (when (string-match "{" str)
+  ;;       (replace-match " " nil nil str)))
+  ;;
+  ;; The loop way below is slower when not compiled but faster when
+  ;; compiled. It also relies on features that's also available in CL.
+  ;;
+  ;; We have to make sure to copy the string though.
+  ;;
+  ;; (k/benchmark 100000
+  ;;   (let ((at-exp "@a{this is not a symbol}"))
+  ;;     (kpc--sanitize-curly-brace--string-match at-exp))
+  ;;   (let ((at-exp "@a{this is not a symbol}"))
+  ;;     (kpc--sanitize-curly-brace--loop at-exp))
+  ;;   (let ((at-exp "@a{this is not a symbol}"))
+  ;;     (kpc--sanitize-curly-brace--loop-pure at-exp)))
+  ;;
+  ;; Not compiled:
+  ;; (4.278340620000039e-06
+  ;;  0.00010861955130000018
+  ;;  4.756440075999997e-05)
+  ;;
+  ;; Compiled:
+  ;; (9.904285519999991e-06
+  ;;  2.571869180000109e-06
+  ;;  1.5654785899999883e-06)
+  ;;
+  ;; It's faster when I add an extra `copy-sequence'???
+  (let ((str (copy-sequence str)))
+    (catch 'ret
+      (cl-loop with index = 0
+               with length = (length str)
+               until (= index length)
+               do
+               (when (= (aref str index) ?\{)
+                 (setf (aref str index) ?\ )
+                 (throw 'ret str))
+               (cl-incf index)))))
+
 (defun kpc-read-@-exp-cmd (at-exp pos)
   "Read the <cmd> of AT-EXP at POS.
 
-Note that this reads an sexp as defined by Emacs Lisp.
+Note that this reads an sexp as defined by Emacs Lisp, except
+curly braces are excluded.
 
 Return a cons: (sexp . new-pos)"
   (catch 'ret
@@ -47,7 +92,11 @@ Return a cons: (sexp . new-pos)"
       (throw 'ret nil))
     (when (memql (aref at-exp pos) '(?\{ ?\[))
       (throw 'ret nil))
-    (read-from-string at-exp pos)))
+    (let* ((curly-brace-sanitized
+            (kpc--sanitize-curly-brace at-exp)))
+      (read-from-string (or curly-brace-sanitized
+                            at-exp)
+                        pos))))
 
 (defun kpc-read-@-exp-datums (at-exp pos)
   "Read the <datums> of AT-EXP at POS.
