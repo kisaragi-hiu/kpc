@@ -14,8 +14,11 @@
             '((123 "abc") . 15))))
 
 (describe "cmd"
-  (it "parses"
+  (it "parses with datums"
     (expect (kpc-read-@-exp-cmd "@a[123 456 \"abc\" [vector v]]" 1)
+            :to-equal '(a . 2)))
+  (it "parses with a body"
+    (expect (kpc-read-@-exp-cmd "@a{this is not a symbol}" 1)
             :to-equal '(a . 2))))
 
 (describe "at-exp"
