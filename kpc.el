@@ -19,10 +19,11 @@
 
 (require 'dash)
 
-(defvar kpc-debug nil
-  "Should `kpc--message' actually show anything?
+(eval-and-compile
+  (defvar kpc-debug nil
+    "Should `kpc--message' actually show anything?
 
-Should be set before loading this file.")
+Should be set before loading this file."))
 
 (defmacro kpc--message (format-string &rest args)
   "Like `message', but with a prefix and only when `kpc-debug' is non-nil.
