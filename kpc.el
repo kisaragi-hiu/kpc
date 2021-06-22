@@ -131,6 +131,8 @@ Return a cons: ((sexp ...) . new-pos)"
 
 Each line is split into an element.
 
+TODO: indentation based on length of the command part.
+
 Return a cons: ((body ...) . new-pos)"
   (catch 'ret
     (when (>= pos (length at-exp))
@@ -182,10 +184,14 @@ Return a cons: ((body ...) . new-pos)"
             ;; point.
             (1+ pos)))))
 
+;; TODO: this (or a version of it) needs to return NEWPOS as well for
+;; nested parsing.
 (defun kpc-read-@-exp (at-exp)
   "Read AT-EXP into an sexp.
 
 at-expression: https://docs.racket-lang.org/scribble/reader.html"
+  ;; HACK: just do this for now.
+  (setq at-exp (string-trim at-exp))
   ;; Operate on the string directly so that it's easier to port to
   ;; languages without builtin buffers
   (let ((pos 0) cmd datums bodies)
@@ -208,6 +214,8 @@ at-expression: https://docs.racket-lang.org/scribble/reader.html"
      ((and (not datums)
            (not bodies))
       cmd)
+     ((not cmd)
+      `(,@datums ,@bodies))
      (t
       `(,cmd ,@datums ,@bodies)))))
 
