@@ -1,3 +1,4 @@
-# Common Lisp - Kisaragi's Pollen Clone (cl-kpc)
+# Kisaragi's Pollen Clone
 
-Progress: 0%
+- An at-exp reader (customize it for the Pollen lozenge)
+- Templates, parsing, Pollen Markup clone
