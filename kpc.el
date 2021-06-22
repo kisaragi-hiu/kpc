@@ -19,6 +19,10 @@
 
 (require 'dash)
 
+
+(defconst kpc-given-but-empty (make-symbol "kpc-given-but-empty")
+  "Unique symbol that signals a section is given but empty.")
+
 (defun kpc-read-@-exp-cmd (at-exp pos)
   "Read the <cmd> of AT-EXP at POS.
 
@@ -26,6 +30,8 @@ Note that this reads an sexp as defined by Emacs Lisp.
 
 Return a cons: (sexp . new-pos)"
   (catch 'ret
+    (when (>= pos (length at-exp))
+      (throw 'ret nil))
     (when (memql (aref at-exp pos) '(?\{ ?\[))
       (throw 'ret nil))
     (read-from-string at-exp pos)))
@@ -37,6 +43,8 @@ Each datum is either an sexp or an @-exp.
 
 Return a cons: ((sexp ...) . new-pos)"
   (catch 'ret
+    (when (>= pos (length at-exp))
+      (throw 'ret nil))
     (unless (eql (aref at-exp pos) ?\[)
       (throw 'ret nil))
     (cl-incf pos)
@@ -46,7 +54,13 @@ Return a cons: ((sexp ...) . new-pos)"
                         (read-from-string at-exp pos)))
                   (setq pos newpos)
                   (push sexp sexps))
-             finally return (cons (nreverse sexps) pos))))
+             finally return
+             (cons (or (nreverse sexps)
+                       kpc-given-but-empty)
+                   ;; like `read-from-string', the pos should be after the
+                   ;; region we have just read. POS is still inside at this
+                   ;; point.
+                   (1+ pos)))))
 
 (defun kpc-read-@-exp-bodies (at-exp pos)
   "Read the <bodies> of AT-EXP at POS.
@@ -57,6 +71,8 @@ Each line is split into an element.
 
 Return a cons: ((body ...) . new-pos)"
   (catch 'ret
+    (when (>= pos (length at-exp))
+      (throw 'ret nil))
     (unless (eql (aref at-exp pos) ?\{)
       (throw 'ret nil))
     (cl-incf pos)
@@ -97,7 +113,12 @@ Return a cons: ((body ...) . new-pos)"
                (push (substring at-exp previous pos) sexps)
                (throw 'done t))))
            (cl-incf pos))))
-      (nreverse sexps))))
+      (cons (or (nreverse sexps)
+                kpc-given-but-empty)
+            ;; like `read-from-string', the pos should be after the
+            ;; region we have just read. POS is still inside at this
+            ;; point.
+            (1+ pos)))))
 
 (defun kpc-read-@-exp (at-exp)
   "Read AT-EXP into an sexp.
@@ -116,7 +137,11 @@ at-expression: https://docs.racket-lang.org/scribble/reader.html"
     (-when-let* ((ret (kpc-read-@-exp-bodies at-exp pos)))
       (-setq (bodies . pos) ret))
     (cond
-     ((not (or datums bodies))
+     ((and (eq datums kpc-given-but-empty)
+           (not bodies))
+      `(,cmd))
+     ((and (not datums)
+           (not bodies))
       cmd)
      (t
       `(,cmd ,@datums ,@bodies)))))
