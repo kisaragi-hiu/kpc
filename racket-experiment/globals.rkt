@@ -1,6 +1,9 @@
 #lang racket/base
 
-(provide (all-defined-out))
+(require "kpc.rkt")
+
+(provide (all-defined-out)
+         component)
 
 (define subtitle "Subtitle")
 (define site-title "Welcome")
