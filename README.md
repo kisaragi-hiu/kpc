@@ -1,4 +1,3 @@
-# Kisaragi's Pollen Clone
+# KPC
 
-- An at-exp reader (customize it for the Pollen lozenge)
-- Templates, parsing, Pollen Markup clone
+I hope this becomes an at-exp-based templating language.
