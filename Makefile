@@ -1,7 +1,4 @@
-.cask: Cask
-	cask install
-
-test: .cask $(shell find . -name "*.el")
-	cask exec buttercup -L . -L tests
-
-.PHONY: test
+dist: kpc.rkt cmd.rkt
+	raco exe cmd.rkt
+	mv cmd kpc
+	raco distribute dist kpc
