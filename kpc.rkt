@@ -2,8 +2,6 @@
 
 (require racket/syntax-srcloc
          (only-in scribble/reader
-                  (read scribble/reader:read)
-                  (read-syntax scribble/reader:read-syntax)
                   (read-syntax-inside scribble/reader:read-syntax-inside)))
 
 (provide kpc-process kpc-read/eval)
