@@ -3,5 +3,5 @@ dist: kpc.rkt cmd.rkt
 	mv cmd kpc
 	raco distribute dist kpc
 
-compile:
-	scribble --html --dest docs kpc.scrbl
+setup:
+	raco setup kpc
