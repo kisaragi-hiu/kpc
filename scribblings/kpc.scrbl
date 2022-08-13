@@ -2,7 +2,9 @@
 
 @(require scribble/eval @; This might be discouraged but it's still
                         @; actively used by Racket Guide, so...
-          (for-label racket))
+          (for-label racket)
+          (for-label
+           (only-in scribble/reader read-syntax-inside)))
 
 @title{kpc: @"@"-expressions as generic preprocessor}
 
@@ -10,7 +12,7 @@
 
 Sometimes I just want Pollen's preprocessing mode without treating the preprocessed file like a program. It causes Racket to sprinkle @code{compiled/} directories all over the place, and forces files to be written with a #lang header.
 
-This command aims to be that.
+This tool instead just calls Scribble's @code{read-syntax-inside} on file contents.
 
 @section{Command-Line Usage}
 

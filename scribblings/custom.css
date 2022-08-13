@@ -1,0 +1,18 @@
+html {
+  font-size: 15px;
+}
+body {
+  margin-bottom: 10em;
+}
+
+.tocset {
+  display: none;
+}
+
+.versionbox {
+  display: none;
+}
+
+.maincolumn {
+  margin: auto;
+}
