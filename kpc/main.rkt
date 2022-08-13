@@ -41,13 +41,13 @@
 ;; Take `filepath`, return its content after transforming all at-exps
 ;; inside.
 ;;
-;; If there is a "kpc-cfg.rkt" next to `filepath`, it will be
+;; If there is a "kpc-config.rkt" next to `filepath`, it will be
 ;; automatically required before code in `filepath` runs.
 (define (kpc-process filepath)
   (parameterize ([current-namespace (make-base-empty-namespace)])
     (namespace-require 'racket/base)
-    (when (file-exists? (build-path (path-only "./abc") "kpc-cfg.rkt"))
-      (namespace-require (build-path (path-only "./abc") "kpc-cfg.rkt")))
+    (when (file-exists? (build-path (path-only "./abc") "kpc-config.rkt"))
+      (namespace-require (build-path (path-only "./abc") "kpc-config.rkt")))
     (string-join
      (kpc-read/eval filepath (current-namespace))
      "")))

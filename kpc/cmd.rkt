@@ -1,6 +1,6 @@
 #lang racket
 
-(require "./kpc.rkt")
+(require "./main.rkt")
 
 (command-line
  #:program "kpc"
